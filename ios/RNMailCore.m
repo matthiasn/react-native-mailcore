@@ -1,4 +1,3 @@
-
 #import "RNMailCore.h"
 #import <MailCore/MailCore.h>
 #import <React/RCTConvert.h>
@@ -39,21 +38,21 @@ RCT_EXPORT_METHOD(sendMail:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
     NSString *uri = [RCTConvert NSString:obj[@"attachmentUri"]];
     
     if (uri) {
-        NSURL * url = [[NSURL alloc] initWithString:uri];
-        NSLog(@"attachmentUri: %@",url);
-        PHFetchResult *assets = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
-        
+        NSString *const localIdentifier = [uri substringFromIndex:@"ph://".length];
+        NSLog(@"IMG localIdentifier: %@",localIdentifier);
+        PHFetchResult *assets = [PHAsset fetchAssetsWithLocalIdentifiers:@[localIdentifier] options:nil];
+
         PHImageManager *imageManager = [PHImageManager new];
-        
+
         for (PHAsset *asset in assets) {
             [imageManager requestImageDataForAsset:asset
                                            options:0
                                      resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info) {
                                          MCOAttachment *att = [MCOAttachment attachmentWithData:imageData filename:[RCTConvert NSString:obj[@"filename"]]];
                                          [builder addAttachment:att];
-                                         
+
                                          NSData * rfc822Data = [builder data];
-                                         
+
                                          MCOSMTPSendOperation *sendOperation =
                                          [smtpSession sendOperationWithData:rfc822Data];
                                          [sendOperation start:^(NSError *error) {
@@ -70,7 +69,7 @@ RCT_EXPORT_METHOD(sendMail:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
         }
     } else {
         NSData * rfc822Data = [builder data];
-        
+
         MCOSMTPSendOperation *sendOperation =
         [smtpSession sendOperationWithData:rfc822Data];
         [sendOperation start:^(NSError *error) {
@@ -98,12 +97,12 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
         session.password = [RCTConvert NSString:obj[@"password"]];
         session.authType = MCOAuthTypeSASLPlain;
         session.connectionType = MCOConnectionTypeTLS;
-        
+
         MCOMessageBuilder *builder = [[MCOMessageBuilder alloc] init];
         NSDictionary* fromObj = [RCTConvert NSDictionary:obj[@"from"]];
         MCOAddress *from = [MCOAddress addressWithDisplayName:[RCTConvert NSString:fromObj[@"addressWithDisplayName"]]
                                                       mailbox:[RCTConvert NSString:fromObj[@"mailbox"]]];
-        
+
         NSDictionary* toObj = [RCTConvert NSDictionary:obj[@"to"]];
         MCOAddress *to = [MCOAddress addressWithDisplayName:[RCTConvert NSString:toObj[@"addressWithDisplayName"]]
                                                     mailbox:[RCTConvert NSString:toObj[@"mailbox"]]];
@@ -114,11 +113,11 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
         NSString *uri = [RCTConvert NSString:obj[@"attachmentUri"]];
         NSString *audiofile = [RCTConvert NSString:obj[@"audiofile"]];
         NSString *folder = [RCTConvert NSString:obj[@"folder"]];
-        
+
         if (uri) {
-            NSURL * url = [[NSURL alloc] initWithString:uri];
-            NSLog(@"attachmentUri: %@",url);
-            PHFetchResult *assets = [PHAsset fetchAssetsWithALAssetURLs:@[url] options:nil];
+            NSString *const localIdentifier = [uri substringFromIndex:@"ph://".length];
+            NSLog(@"IMG localIdentifier: %@",localIdentifier);
+            PHFetchResult *assets = [PHAsset fetchAssetsWithLocalIdentifiers:@[localIdentifier] options:nil];
             
             PHImageManager *imageManager = [PHImageManager new];
             
