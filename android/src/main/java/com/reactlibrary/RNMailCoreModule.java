@@ -15,8 +15,12 @@ import com.libmailcore.MailException;
 import com.libmailcore.MessageBuilder;
 import com.libmailcore.MessageHeader;
 import com.libmailcore.OperationCallback;
+
 import com.libmailcore.SMTPOperation;
 import com.libmailcore.SMTPSession;
+
+import com.libmailcore.IMAPOperation;
+import com.libmailcore.IMAPSession;
 
 import java.util.ArrayList;
 
@@ -87,4 +91,63 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
     });
 
   }
+
+  @ReactMethod
+  public void saveImap(final ReadableMap obj, final Promise promise){
+    getCurrentActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+
+        IMAPSession imapSession = new IMAPSession();
+        imapSession.setHostname(obj.getString("hostname"));
+        imapSession.setPort(obj.getInt("port"));
+        imapSession.setUsername(obj.getString("username"));
+        imapSession.setPassword(obj.getString("password"));
+        imapSession.setAuthType(AuthType.AuthTypeSASLPlain);
+        imapSession.setConnectionType(ConnectionType.ConnectionTypeTLS);
+
+        ReadableMap fromObj = obj.getMap("from");
+        Address fromAddress = new Address();
+        fromAddress.setDisplayName(fromObj.getString("addressWithDisplayName"));
+        fromAddress.setMailbox(fromObj.getString("mailbox"));
+
+        ReadableMap toObj = obj.getMap("to");
+        Address toAddress = new Address();
+        toAddress.setDisplayName(toObj.getString("addressWithDisplayName"));
+        toAddress.setMailbox(toObj.getString("mailbox"));
+
+        ArrayList<Address> toAddressList = new ArrayList();
+        toAddressList.add(toAddress);
+
+        //String uri = obj.getString("attachmentUri");
+        //String audiofile = obj.getString("audiofile");
+        String folder = obj.getString("folder");
+
+        MessageHeader messageHeader = new MessageHeader();
+        messageHeader.setSubject(obj.getString("subject"));
+        messageHeader.setTo(toAddressList);
+        messageHeader.setFrom(fromAddress);
+
+        MessageBuilder messageBuilder = new MessageBuilder();
+        messageBuilder.setHeader(messageHeader);
+        messageBuilder.setHTMLBody(obj.getString("textBody"));
+
+        IMAPOperation imapOperation = imapSession.appendMessageOperation(folder, messageBuilder.data(), 0);
+        imapOperation.start(new OperationCallback() {
+          @Override
+          public void succeeded() {
+            WritableMap result = Arguments.createMap();
+            result.putString("status", "SUCCESS");
+            promise.resolve(result);
+          }
+
+          @Override
+          public void failed(MailException e) {
+            promise.reject(String.valueOf(e.errorCode()), e.getMessage());
+          }
+        });
+      }
+    });
+  }
+
 }

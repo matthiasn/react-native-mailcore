@@ -1,6 +1,6 @@
 {
   "name": "@matthiasn/react-native-mailcore",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "React Native bindings for https://github.com/MailCore/mailcore2",
   "main": "index.js",
   "directories": {
@@ -13,7 +13,12 @@
     "type": "git",
     "url": "git+https://github.com/agenthunt/react-native-mailcore.git"
   },
-  "keywords": ["react-native", "sendmail", "email", "smtp"],
+  "keywords": [
+    "react-native",
+    "sendmail",
+    "email",
+    "smtp"
+  ],
   "author": "Shailesh",
   "license": "ISC",
   "peerDependencies": {
