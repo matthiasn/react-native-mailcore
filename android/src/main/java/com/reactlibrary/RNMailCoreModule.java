@@ -139,6 +139,7 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
             String uri = obj.getString("attachmentUri");
             String path = Uri.parse(uri).getPath();
             Attachment att = Attachment.attachmentWithContentsOfFile(path);
+            att.setFilename(obj.getString("filename"));
             messageBuilder.addAttachment(att);
           } catch (Exception e) {
           }
