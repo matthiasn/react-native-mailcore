@@ -1,6 +1,8 @@
 
 package com.reactlibrary;
 
+import android.net.Uri;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -21,6 +23,7 @@ import com.libmailcore.SMTPSession;
 
 import com.libmailcore.IMAPOperation;
 import com.libmailcore.IMAPSession;
+import com.libmailcore.Attachment;
 
 import java.util.ArrayList;
 
@@ -119,7 +122,6 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
         ArrayList<Address> toAddressList = new ArrayList();
         toAddressList.add(toAddress);
 
-        //String uri = obj.getString("attachmentUri");
         //String audiofile = obj.getString("audiofile");
         String folder = obj.getString("folder");
 
@@ -131,6 +133,16 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
         MessageBuilder messageBuilder = new MessageBuilder();
         messageBuilder.setHeader(messageHeader);
         messageBuilder.setHTMLBody(obj.getString("textBody"));
+
+        if (obj.hasKey("attachmentUri")) {
+          try {
+            String uri = obj.getString("attachmentUri");
+            String path = Uri.parse(uri).getPath();
+            Attachment att = Attachment.attachmentWithContentsOfFile(path);
+            messageBuilder.addAttachment(att);
+          } catch (Exception e) {
+          }
+        }
 
         IMAPOperation imapOperation = imapSession.appendMessageOperation(folder, messageBuilder.data(), 0);
         imapOperation.start(new OperationCallback() {
