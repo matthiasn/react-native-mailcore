@@ -125,7 +125,16 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
                 [imageManager requestImageDataForAsset:asset
                                                options:0
                                          resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info) {
-                                             MCOAttachment *att = [MCOAttachment attachmentWithData:imageData filename:[RCTConvert NSString:obj[@"filename"]]];
+                                             NSData *img = imageData;
+                                             NSString *filename = [RCTConvert NSString:obj[@"filename"]];
+
+                                             if ([filename rangeOfString:@"PNG"].length != 0) {
+                                                 UIImage *rawImage = [UIImage imageWithData:img];
+                                                 img = UIImageJPEGRepresentation(rawImage, 0.8);
+                                                 filename = [filename stringByReplacingOccurrencesOfString:@"PNG" withString:@"JPG"];
+                                             }
+
+                                             MCOAttachment *att = [MCOAttachment attachmentWithData:img filename:filename];
                                              [builder addAttachment:att];
                                              
                                              NSData * rfc822Data = [builder data];
