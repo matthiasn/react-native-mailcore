@@ -1,5 +1,7 @@
 # react-native-mailcore
 
+## This fork is intended for use by matthias/meins - please do not count on it being useful elsewhere
+
 react native bindings for https://github.com/MailCore/mailcore2
 
 [![npm version](https://img.shields.io/npm/v/react-native-mailcore.svg?style=flat-square)](https://www.npmjs.com/package/agenthunt/react-native-mailcore)

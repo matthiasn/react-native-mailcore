@@ -122,7 +122,6 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
         ArrayList<Address> toAddressList = new ArrayList();
         toAddressList.add(toAddress);
 
-        //String audiofile = obj.getString("audiofile");
         String folder = obj.getString("folder");
 
         MessageHeader messageHeader = new MessageHeader();
@@ -140,6 +139,17 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
             String path = Uri.parse(uri).getPath();
             Attachment att = Attachment.attachmentWithContentsOfFile(path);
             att.setFilename(obj.getString("filename"));
+            messageBuilder.addAttachment(att);
+          } catch (Exception e) {
+          }
+        }
+
+        if (obj.hasKey("audiofile")) {
+          try {
+            String filename = obj.getString("audiofile");
+            String path = obj.getString("audiopath");
+            Attachment att = Attachment.attachmentWithContentsOfFile(path);
+            att.setFilename(filename);
             messageBuilder.addAttachment(att);
           } catch (Exception e) {
           }
