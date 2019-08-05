@@ -150,6 +150,7 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
             String path = obj.getString("audiopath");
             Attachment att = Attachment.attachmentWithContentsOfFile(path);
             att.setFilename(filename);
+            att.setMimeType("audio/m4a");
             messageBuilder.addAttachment(att);
           } catch (Exception e) {
           }
