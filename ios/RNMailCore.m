@@ -16,18 +16,19 @@ RCT_EXPORT_METHOD(sendMail:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     MCOSMTPSession *smtpSession = [[MCOSMTPSession alloc] init];
+    NSUInteger port = [RCTConvert NSUInteger:obj[@"port"]];
     smtpSession.hostname = [RCTConvert NSString:obj[@"hostname"]];
-    smtpSession.port = [RCTConvert NSUInteger:obj[@"port"]];
+    smtpSession.port = (int)port;
     smtpSession.username = [RCTConvert NSString:obj[@"username"]];
     smtpSession.password = [RCTConvert NSString:obj[@"password"]];
     smtpSession.authType = MCOAuthTypeSASLPlain;
     smtpSession.connectionType = MCOConnectionTypeTLS;
-    
+
     MCOMessageBuilder *builder = [[MCOMessageBuilder alloc] init];
     NSDictionary* fromObj = [RCTConvert NSDictionary:obj[@"from"]];
     MCOAddress *from = [MCOAddress addressWithDisplayName:[RCTConvert NSString:fromObj[@"addressWithDisplayName"]]
                                                   mailbox:[RCTConvert NSString:fromObj[@"mailbox"]]];
-    
+
     NSDictionary* toObj = [RCTConvert NSDictionary:obj[@"to"]];
     MCOAddress *to = [MCOAddress addressWithDisplayName:[RCTConvert NSString:toObj[@"addressWithDisplayName"]]
                                                 mailbox:[RCTConvert NSString:toObj[@"mailbox"]]];
@@ -36,7 +37,7 @@ RCT_EXPORT_METHOD(sendMail:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
     [[builder header] setSubject:[RCTConvert NSString:obj[@"subject"]]];
     [builder setTextBody:[RCTConvert NSString:obj[@"textBody"]]];
     NSString *uri = [RCTConvert NSString:obj[@"attachmentUri"]];
-    
+
     if (uri) {
         NSString *const localIdentifier = [uri substringFromIndex:@"ph://".length];
         NSLog(@"IMG localIdentifier: %@",localIdentifier);
@@ -91,8 +92,9 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
     MCOIMAPSession *session = [[MCOIMAPSession alloc] init];
 
     @try {
+        NSUInteger port = [RCTConvert NSUInteger:obj[@"port"]];
         session.hostname = [RCTConvert NSString:obj[@"hostname"]];
-        session.port = [RCTConvert NSUInteger:obj[@"port"]];
+        session.port = (int)port;
         session.username = [RCTConvert NSString:obj[@"username"]];
         session.password = [RCTConvert NSString:obj[@"password"]];
         session.authType = MCOAuthTypeSASLPlain;
@@ -118,9 +120,9 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
             NSString *const localIdentifier = [uri substringFromIndex:@"ph://".length];
             NSLog(@"IMG localIdentifier: %@",localIdentifier);
             PHFetchResult *assets = [PHAsset fetchAssetsWithLocalIdentifiers:@[localIdentifier] options:nil];
-            
+
             PHImageManager *imageManager = [PHImageManager new];
-            
+
             for (PHAsset *asset in assets) {
                 [imageManager requestImageDataForAsset:asset
                                                options:0
@@ -136,12 +138,12 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
 
                                              MCOAttachment *att = [MCOAttachment attachmentWithData:img filename:filename];
                                              [builder addAttachment:att];
-                                             
+
                                              NSData * rfc822Data = [builder data];
-                                             
+
                                              MCOIMAPAppendMessageOperation *appendOp =
                                              [session appendMessageOperationWithFolder:folder messageData:rfc822Data flags:MCOMessageFlagNone];
-                                             
+
                                              [appendOp start:^(NSError * _Nullable error, uint32_t createdUID) {
                                                  if (error) {
                                                      NSLog(@"ERROR appendOp: %@", error);
@@ -160,10 +162,10 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
             [att setMimeType:@"audio/m4a"];
             [builder addAttachment:att];
             NSData * rfc822Data = [builder data];
-            
+
             MCOIMAPAppendMessageOperation *appendOp =
             [session appendMessageOperationWithFolder:folder messageData:rfc822Data flags:MCOMessageFlagNone];
-            
+
             [appendOp start:^(NSError * _Nullable error, uint32_t createdUID) {
                 if (error) {
                     NSLog(@"ERROR appendOp: %@", error);
@@ -174,10 +176,10 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
             }];
         } else {
             NSData * rfc822Data = [builder data];
-            
+
             MCOIMAPAppendMessageOperation *appendOp =
             [session appendMessageOperationWithFolder:folder messageData:rfc822Data flags:MCOMessageFlagNone];
-            
+
             [appendOp start:^(NSError * _Nullable error, uint32_t createdUID) {
                 if (error) {
                     NSLog(@"ERROR appendOp: %@", error);
@@ -205,38 +207,53 @@ RCT_EXPORT_METHOD(fetchImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     MCOIMAPSession *session = [[MCOIMAPSession alloc] init];
+    NSUInteger port = [RCTConvert NSUInteger:obj[@"port"]];
+    NSString *folder = [RCTConvert NSString:obj[@"folder"]];
+    NSUInteger minUid = [RCTConvert NSUInteger:obj[@"minUid"]];
+    NSUInteger length = [RCTConvert NSUInteger:obj[@"length"]];
+
     session.hostname = [RCTConvert NSString:obj[@"hostname"]];
-    session.port = [RCTConvert NSUInteger:obj[@"port"]];
+    session.port = (int)port;
     session.username = [RCTConvert NSString:obj[@"username"]];
     session.password = [RCTConvert NSString:obj[@"password"]];
     session.authType = MCOAuthTypeSASLPlain;
     session.connectionType = MCOConnectionTypeTLS;
-    NSString *folder = [RCTConvert NSString:obj[@"folder"]];
-    NSUInteger *minUid = [RCTConvert NSUInteger:obj[@"minUid"]];
-    NSUInteger *length = [RCTConvert NSUInteger:obj[@"length"]];
 
-    MCOIndexSet *uidSet = [MCOIndexSet indexSetWithRange:MCORangeMake(minUid,length)];
+    MCOIndexSet *uidSet = [MCOIndexSet indexSetWithRange:MCORangeMake(minUid,minUid + length)];
     MCOIMAPFetchMessagesOperation *fetchOp =
+
     [session fetchMessagesOperationWithFolder:folder
                                   requestKind:MCOIMAPMessagesRequestKindUid
                                          uids:uidSet];
-    
+
+    [[session folderStatusOperation:folder] start:^(NSError *error, MCOIMAPFolderStatus *info) {
+        NSLog(@"folderStatusOperation %@", info);
+    }];
+
+    NSLog(@"uidSet %@", uidSet);
+
     [fetchOp start:^(NSError *err, NSArray *msgs, MCOIndexSet *vanished) {
         NSMutableArray *uids = [NSMutableArray new];
-        
+
+        if (err) {
+            NSLog(@"Mailcore fetch error %@", err);
+        }
+
+        NSLog(@"msgs %@", msgs);
+
         for(MCOIMAPMessage * msg in msgs) {
             NSNumber *uid = [NSNumber numberWithUnsignedInt:[msg uid]];
             [uids addObject:uid];
         }
         NSString *res = [uids componentsJoinedByString:@" "];
-        NSLog(@"%@", res);
-        
+        NSLog(@"res %@", res);
+
         [session.disconnectOperation start:^(NSError * error){
             if (error) {
                 NSLog(@"Error closing connection: %@", error);
             }
         }];
-        
+
         resolve(res);
     }];
 }
@@ -245,31 +262,31 @@ RCT_EXPORT_METHOD(fetchImapByUid:(NSDictionary *)obj resolver:(RCTPromiseResolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     MCOIMAPSession *session = [[MCOIMAPSession alloc] init];
+    NSUInteger port = [RCTConvert NSUInteger:obj[@"port"]];
     session.hostname = [RCTConvert NSString:obj[@"hostname"]];
-    session.port = [RCTConvert NSUInteger:obj[@"port"]];
+    session.port = (int)port;
     session.username = [RCTConvert NSString:obj[@"username"]];
     session.password = [RCTConvert NSString:obj[@"password"]];
     session.authType = MCOAuthTypeSASLPlain;
     session.connectionType = MCOConnectionTypeTLS;
     NSString *folder = [RCTConvert NSString:obj[@"folder"]];
-    NSUInteger *uid = [RCTConvert NSUInteger:obj[@"uid"]];
-    
-    MCOIMAPFetchContentOperation * op = [session fetchMessageOperationWithFolder:folder uid:uid];
+    NSUInteger uid = [RCTConvert NSUInteger:obj[@"uid"]];
+
+    MCOIMAPFetchContentOperation * op = [session fetchMessageOperationWithFolder:folder uid:(int)uid];
     [op start:^(NSError * __nullable error, NSData * messageData) {
         MCOMessageParser * parser = [MCOMessageParser messageParserWithData:messageData];
         NSString *plainTextBody = [parser plainTextBodyRendering];
-        //NSLog(@"plainTextBody: %@", plainTextBody);
-        NSLog(@"retrieved message: %u", uid);
+        NSLog(@"retrieved message: %u", (int)uid);
 
         NSDictionary *result = @{@"status": @"SUCCESS",
                                  @"body": plainTextBody};
-        
+
         [session.disconnectOperation start:^(NSError * error){
             if (error) {
                 NSLog(@"Error closing connection: %@", error);
             }
         }];
-        
+
         resolve(result);
     }];
 }
