@@ -273,6 +273,7 @@ RCT_EXPORT_METHOD(fetchImapByUid:(NSDictionary *)obj resolver:(RCTPromiseResolve
     NSUInteger uid = [RCTConvert NSUInteger:obj[@"uid"]];
 
     MCOIMAPFetchContentOperation * op = [session fetchMessageOperationWithFolder:folder uid:(int)uid];
+
     [op start:^(NSError * __nullable error, NSData * messageData) {
         MCOMessageParser * parser = [MCOMessageParser messageParserWithData:messageData];
         NSString *plainTextBody = [parser plainTextBodyRendering];

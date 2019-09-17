@@ -3,29 +3,12 @@ package com.reactlibrary;
 
 import android.net.Uri;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.WritableMap;
-import com.libmailcore.Address;
-import com.libmailcore.AuthType;
-import com.libmailcore.ConnectionType;
-import com.libmailcore.MailException;
-import com.libmailcore.MessageBuilder;
-import com.libmailcore.MessageHeader;
-import com.libmailcore.OperationCallback;
+import com.facebook.react.bridge.*;
 
-import com.libmailcore.SMTPOperation;
-import com.libmailcore.SMTPSession;
-
-import com.libmailcore.IMAPOperation;
-import com.libmailcore.IMAPSession;
-import com.libmailcore.Attachment;
+import com.libmailcore.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RNMailCoreModule extends ReactContextBaseJavaModule {
 
@@ -162,6 +145,88 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
           public void succeeded() {
             WritableMap result = Arguments.createMap();
             result.putString("status", "SUCCESS");
+            promise.resolve(result);
+          }
+
+          @Override
+          public void failed(MailException e) {
+            promise.reject(String.valueOf(e.errorCode()), e.getMessage());
+          }
+        });
+      }
+    });
+  }
+
+  @ReactMethod
+  public void fetchImap(final ReadableMap obj, final Promise promise){
+    getCurrentActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+
+        IMAPSession imapSession = new IMAPSession();
+        imapSession.setHostname(obj.getString("hostname"));
+        imapSession.setPort(obj.getInt("port"));
+        imapSession.setUsername(obj.getString("username"));
+        imapSession.setPassword(obj.getString("password"));
+        imapSession.setAuthType(AuthType.AuthTypeSASLPlain);
+        imapSession.setConnectionType(ConnectionType.ConnectionTypeTLS);
+
+        String folder = obj.getString("folder");
+
+        int minUid = obj.getInt("minUid");
+        int length = obj.getInt("length");
+        IndexSet uidSet = IndexSet.indexSetWithRange(new Range(minUid, minUid + length));
+        final IMAPFetchMessagesOperation fetchOp = imapSession.fetchMessagesByUIDOperation(folder, 0, uidSet);
+
+        fetchOp.start(new OperationCallback() {
+          @Override
+          public void succeeded() {
+            ArrayList<String> uids = new ArrayList<>();
+
+            for (IMAPMessage msg : fetchOp.messages()) {
+              uids.add(Long.toString(msg.uid()));
+            }
+
+            String result = String.join(" ", uids);
+
+            promise.resolve(result);
+          }
+
+          @Override
+          public void failed(MailException e) {
+            promise.reject(String.valueOf(e.errorCode()), e.getMessage());
+          }
+        });
+      }
+    });
+  }
+
+  @ReactMethod
+  public void fetchImapByUid(final ReadableMap obj, final Promise promise){
+    getCurrentActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+
+        IMAPSession imapSession = new IMAPSession();
+        imapSession.setHostname(obj.getString("hostname"));
+        imapSession.setPort(obj.getInt("port"));
+        imapSession.setUsername(obj.getString("username"));
+        imapSession.setPassword(obj.getString("password"));
+        imapSession.setAuthType(AuthType.AuthTypeSASLPlain);
+        imapSession.setConnectionType(ConnectionType.ConnectionTypeTLS);
+
+        String folder = obj.getString("folder");
+        int uid = obj.getInt("uid");
+
+        final IMAPFetchParsedContentOperation fetchOp = imapSession.fetchParsedMessageByUIDOperation(folder, uid);
+
+        fetchOp.start(new OperationCallback() {
+          @Override
+          public void succeeded() {
+            String body = fetchOp.parser().plainTextBodyRendering(true);
+            WritableMap result = Arguments.createMap();
+            result.putString("status", "SUCCESS");
+            result.putString("body", body);
             promise.resolve(result);
           }
 
