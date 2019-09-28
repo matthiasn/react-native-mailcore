@@ -1,6 +1,6 @@
 {
   "name": "@matthiasn/react-native-mailcore",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "React Native bindings for https://github.com/MailCore/mailcore2",
   "main": "index.js",
   "directories": {
