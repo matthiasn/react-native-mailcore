@@ -200,7 +200,6 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
               }
 
               String result = String.join(" ", uids);
-
               promise.resolve(result);
             }
 
@@ -222,34 +221,38 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
       @Override
       public void run() {
 
-        IMAPSession imapSession = new IMAPSession();
-        imapSession.setHostname(obj.getString("hostname"));
-        imapSession.setPort(obj.getInt("port"));
-        imapSession.setUsername(obj.getString("username"));
-        imapSession.setPassword(obj.getString("password"));
-        imapSession.setAuthType(AuthType.AuthTypeSASLPlain);
-        imapSession.setConnectionType(ConnectionType.ConnectionTypeTLS);
+        try {
+          IMAPSession imapSession = new IMAPSession();
+          imapSession.setHostname(obj.getString("hostname"));
+          imapSession.setPort(obj.getInt("port"));
+          imapSession.setUsername(obj.getString("username"));
+          imapSession.setPassword(obj.getString("password"));
+          imapSession.setAuthType(AuthType.AuthTypeSASLPlain);
+          imapSession.setConnectionType(ConnectionType.ConnectionTypeTLS);
 
-        String folder = obj.getString("folder");
-        int uid = obj.getInt("uid");
+          String folder = obj.getString("folder");
+          int uid = obj.getInt("uid");
 
-        final IMAPFetchParsedContentOperation fetchOp = imapSession.fetchParsedMessageByUIDOperation(folder, uid);
+          final IMAPFetchParsedContentOperation fetchOp = imapSession.fetchParsedMessageByUIDOperation(folder, uid);
 
-        fetchOp.start(new OperationCallback() {
-          @Override
-          public void succeeded() {
-            String body = fetchOp.parser().plainTextBodyRendering(true);
-            WritableMap result = Arguments.createMap();
-            result.putString("status", "SUCCESS");
-            result.putString("body", body);
-            promise.resolve(result);
-          }
+          fetchOp.start(new OperationCallback() {
+            @Override
+            public void succeeded() {
+              String body = fetchOp.parser().plainTextBodyRendering(true);
+              WritableMap result = Arguments.createMap();
+              result.putString("status", "SUCCESS");
+              result.putString("body", body);
+              promise.resolve(result);
+            }
 
-          @Override
-          public void failed(MailException e) {
-            promise.reject(String.valueOf(e.errorCode()), e.getMessage());
-          }
-        });
+            @Override
+            public void failed(MailException e) {
+              promise.reject(String.valueOf(e.errorCode()), e.getMessage());
+            }
+          });
+        } catch (Exception e) {
+          promise.reject(String.valueOf(e.getClass()), e.getMessage());
+        }
       }
     });
   }
