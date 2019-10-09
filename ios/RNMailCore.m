@@ -483,38 +483,6 @@ RCT_EXPORT_METHOD(getMailByUid:(NSDictionary *)obj resolver:(RCTPromiseResolveBl
       [result setValue:messageUid forKey:@"id"];
       int flags = message.flags;
       [result setObject:[NSString stringWithFormat:@"%d",flags] forKey:@"flags"];
-      //mailData.putString("date", message.header().date().toString());
-
-      NSMutableDictionary *fromData = [[NSMutableDictionary alloc] init];
-      [fromData setValue:message.header.from.mailbox forKey:@"mailbox"];
-      [fromData setValue:message.header.from.displayName forKey:@"displayName"];
-      [result setObject:fromData forKey:@"from"];
-
-      if(message.header.cc != nil) {
-        NSMutableDictionary *toData = [[NSMutableDictionary alloc] init];
-        for(MCOAddress *toAddress in message.header.to) {
-          [toData setValue:[toAddress displayName] forKey:[toAddress mailbox]];
-        }
-        [result setObject:toData forKey:@"to"];
-      }
-
-      if(message.header.cc != nil) {
-        NSMutableDictionary *ccData = [[NSMutableDictionary alloc] init];
-        for(MCOAddress *ccAddress in message.header.cc) {
-          [ccData setValue:[ccAddress displayName] forKey:[ccAddress mailbox]];
-        }
-        [result setObject:ccData forKey:@"cc"];
-      }
-
-      if(message.header.bcc != nil) {
-        NSMutableDictionary *bccData = [[NSMutableDictionary alloc] init];
-        for(MCOAddress *bccAddress in message.header.bcc) {
-          [bccData setValue:[bccAddress displayName] forKey:[bccAddress mailbox]];
-        }
-        [result setObject:bccData forKey:@"bcc"];
-      }
-
-      [result setValue:message.header.subject forKey:@"subject"];
 
       if ([message.attachments count] > 0){
         NSMutableDictionary *attachmentsData = [[NSMutableDictionary alloc] init];
@@ -534,26 +502,15 @@ RCT_EXPORT_METHOD(getMailByUid:(NSDictionary *)obj resolver:(RCTPromiseResolveBl
         [result setObject:attachmentsData forKey:@"attachments"];
       }
 
-      NSMutableArray *headers = [[NSMutableArray alloc] init];
-      NSArray *extraHeaderNames = [message.header allExtraHeadersNames];
-      if (extraHeaderNames != nil && extraHeaderNames.count > 0){
-        for(NSString *headerKey in extraHeaderNames) {
-          NSMutableDictionary *header = [[NSMutableDictionary alloc] init];
-          [header setObject:[message.header extraHeaderValueForName:headerKey] forKey:headerKey];
-          [headers addObject:header];
-        }
-      }
-      [result setObject: headers forKey: @"headers"];
-
       MCOIMAPFetchContentOperation *operation = [_imapObject fetchMessageOperationWithFolder:folder uid:message.uid];
       [operation start:^(NSError *error, NSData *data) {
         if(error) {
           reject(@"Error", error.localizedDescription, error);
         } else {
-            MCOMessageParser *messageParser = [[MCOMessageParser alloc] initWithData:data];
-            NSString *msgHTMLBody = [messageParser htmlBodyRendering];
-            [result setValue:msgHTMLBody forKey:@"body"];
-            [result setValue:@"SUCCESS123" forKey:@"status"];
+            MCOMessageParser * parser = [MCOMessageParser messageParserWithData:data];
+            NSString *plainTextBody = [parser plainTextBodyRendering];
+            [result setValue:plainTextBody forKey:@"body"];
+            [result setValue:@"SUCCESS" forKey:@"status"];
             resolve(result);
         }
       }];
