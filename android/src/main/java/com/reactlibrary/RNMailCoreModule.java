@@ -46,18 +46,7 @@ public class RNMailCoreModule extends ReactContextBaseJavaModule {
             }
         });
     }
-
-    @ReactMethod
-    public void loginImapWrite(final ReadableMap obj, final Promise promise) {
-        getCurrentActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                UserCredential user = new UserCredential(obj);
-                mailClient.initIMAPWriteSession(user, promise);
-            }
-        });
-    }
-
+    
     @ReactMethod
     public void saveImap(final ReadableMap obj, final Promise promise) {
         getCurrentActivity().runOnUiThread(new Runnable() {
