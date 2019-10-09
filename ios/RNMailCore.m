@@ -68,16 +68,6 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
 
     @try {
         MCOMessageBuilder *builder = [[MCOMessageBuilder alloc] init];
-        NSDictionary* fromObj = [RCTConvert NSDictionary:obj[@"from"]];
-        MCOAddress *from = [MCOAddress addressWithDisplayName:[RCTConvert NSString:fromObj[@"addressWithDisplayName"]]
-                                                      mailbox:[RCTConvert NSString:fromObj[@"mailbox"]]];
-
-        NSDictionary* toObj = [RCTConvert NSDictionary:obj[@"to"]];
-        MCOAddress *to = [MCOAddress addressWithDisplayName:[RCTConvert NSString:toObj[@"addressWithDisplayName"]]
-                                                    mailbox:[RCTConvert NSString:toObj[@"mailbox"]]];
-        [[builder header] setFrom:from];
-        [[builder header] setTo:@[to]];
-        [[builder header] setSubject:[RCTConvert NSString:obj[@"subject"]]];
         [builder setTextBody:[RCTConvert NSString:obj[@"textBody"]]];
         NSString *uri = [RCTConvert NSString:obj[@"attachmentUri"]];
         NSString *audiofile = [RCTConvert NSString:obj[@"audiofile"]];
