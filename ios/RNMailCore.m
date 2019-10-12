@@ -27,10 +27,10 @@ RCT_EXPORT_METHOD(loginSmtp:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock
   MCOSMTPOperation *smtpOperation = [_smtpObject loginOperation];
   [smtpOperation start:^(NSError *error) {
       if(error) {
-        NSLog(@"Error sending email: %@", error);
+        NSLog(@"Error creating SMTP client: %@", error);
         reject(@"Error", error.localizedDescription, error);
       } else {
-        NSLog(@"Successfully sent email!");
+        NSLog(@"Successfully created SMTP client!");
         NSDictionary *result = @{@"status": @"SUCCESS"};
         resolve(result);
       }
@@ -51,10 +51,10 @@ RCT_EXPORT_METHOD(loginImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock
   MCOIMAPOperation *imapOperation = [_imapObject checkAccountOperation];
   [imapOperation start:^(NSError *error) {
       if(error) {
-        NSLog(@"Error sending email: %@", error);
+        NSLog(@"Error creating IMAP client: %@", error);
         reject(@"Error", error.localizedDescription, error);
       } else {
-        NSLog(@"Successfully sent email!");
+        NSLog(@"Successfully created IMAP client!");
         NSDictionary *result = @{@"status": @"SUCCESS"};
         resolve(result);
       }
@@ -70,6 +70,7 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
         NSString *uri = [RCTConvert NSString:obj[@"attachmentUri"]];
         NSString *audiofile = [RCTConvert NSString:obj[@"audiofile"]];
         NSString *folder = [RCTConvert NSString:obj[@"folder"]];
+        NSLog(@"saveImap folder: %@", folder);
 
         if (uri) {
             NSString *const localIdentifier = [uri substringFromIndex:@"ph://".length];
@@ -127,7 +128,7 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
                 } else {
                     resolve(@"SUCCESS");
                 }
-                NSLog(@"stored message: %u", createdUID);
+                NSLog(@"saveImap stored message: %u", createdUID);
             }];
         } else {
             NSData * rfc822Data = [builder data];
@@ -141,7 +142,7 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
                 } else {
                     resolve(@"SUCCESS");
                 }
-                NSLog(@"stored message: %u", createdUID);
+                NSLog(@"saveImap stored message: %u", createdUID);
             }];
         }
     }
