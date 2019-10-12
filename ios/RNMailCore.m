@@ -64,8 +64,6 @@ RCT_EXPORT_METHOD(loginImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock
 RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-    MCOIMAPSession *session = [[MCOIMAPSession alloc] init];
-
     @try {
         MCOMessageBuilder *builder = [[MCOMessageBuilder alloc] init];
         [builder setTextBody:[RCTConvert NSString:obj[@"textBody"]]];
@@ -99,7 +97,7 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
                                              NSData * rfc822Data = [builder data];
 
                                              MCOIMAPAppendMessageOperation *appendOp =
-                                             [session appendMessageOperationWithFolder:folder messageData:rfc822Data flags:MCOMessageFlagNone];
+                                             [_imapObject appendMessageOperationWithFolder:folder messageData:rfc822Data flags:MCOMessageFlagNone];
 
                                              [appendOp start:^(NSError * _Nullable error, uint32_t createdUID) {
                                                  if (error) {
@@ -152,11 +150,6 @@ RCT_EXPORT_METHOD(saveImap:(NSDictionary *)obj resolver:(RCTPromiseResolveBlock)
         reject(@"500", exception.reason, exception);
     }
     @finally {
-        [session.disconnectOperation start:^(NSError * error){
-            if (error) {
-                NSLog(@"Error closing connection: %@", error);
-            }
-        }];
     }
 }
 
